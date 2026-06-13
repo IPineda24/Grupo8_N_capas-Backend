@@ -1,0 +1,94 @@
+{
+  "endpoints": [
+    {
+      "name": "Inicio de Sesión",
+      "path": "/api/auth/login",
+      "method": "POST",
+      "description": "Verifica las credenciales y devuelve un token junto con el rol del usuario.",
+      "request": {
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "email": "paciente@correo.com",
+          "password": "Contraseña123"
+        }
+      },
+      "responses": {
+        "200_OK": {
+          "description": "Login exitoso",
+          "body": {
+            "status": "success",
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX...",
+            "user": {
+              "id": 1,
+              "firstName": "Juan",
+              "lastName": "Pérez",
+              "role": "PACIENTE"
+            }
+          }
+        },
+        "401_UNAUTHORIZED": {
+          "description": "Credenciales inválidas",
+          "body": {
+            "status": "error",
+            "message": "Correo o contraseña incorrectos"
+          }
+        },
+        "400_BAD_REQUEST": {
+          "description": "El formato de los datos enviados es incorrecto o faltan campos obligatorios.",
+          "body": {
+            "status": "error",
+            "message": "Datos de entrada inválidos."
+          }
+        }
+      }
+    },
+    {
+      "name": "Registro de Usuario",
+      "path": "/api/auth/register",
+      "method": "POST",
+      "description": "Crea una nueva cuenta en el sistema.",
+      "request": {
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "firstName": "Ana",
+          "lastName": "Gómez",
+          "email": "ana.gomez@correo.com",
+          "password": "Contraseña123",
+          "phone": "+50370000000"
+        }
+      },
+      "responses": {
+        "201_CREATED": {
+          "description": "Usuario registrado exitosamente",
+          "body": {
+            "status": "success",
+            "message": "Cuenta creada con éxito",
+            "user": {
+              "id": 2,
+              "email": "ana.gomez@correo.com",
+              "role": "PACIENTE"
+            }
+          }
+        },
+        "400_BAD_REQUEST": {
+          "description": "El formato de los datos enviados es incorrecto o faltan campos obligatorios.",
+          "body": {
+            "status": "error",
+            "message": "Datos de registro inválidos."
+          }
+        },
+        "409_CONFLICT": {
+          "description": "Se intenta registrar un dato que pertenece a otro usuario.",
+          "body": {
+            "status": "error",
+            "message": "El correo electrónico o el número de teléfono ingresados ya se encuentran registrados en el sistema."
+          }
+        }
+      }
+    }
+  ]
+}
