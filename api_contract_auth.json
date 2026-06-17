@@ -24,7 +24,7 @@
               "id": 1,
               "firstName": "Juan",
               "lastName": "Pérez",
-              "role": "PACIENTE"
+              "role": "ROLE_PACIENTE"
             }
           }
         },
@@ -70,7 +70,7 @@
             "user": {
               "id": 2,
               "email": "ana.gomez@correo.com",
-              "role": "PACIENTE"
+              "role": "ROLE_PACIENTE"
             }
           }
         },
