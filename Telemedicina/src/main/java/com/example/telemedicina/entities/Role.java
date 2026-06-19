@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "roles")
 @Getter
@@ -12,7 +14,7 @@ public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private UUID id;
 
     @Column(name = "role_name", nullable = false, length = 50)
     private String roleName; // ADMIN, DOCTOR, PATIENT
