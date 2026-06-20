@@ -36,26 +36,18 @@ public class AuthService {
     }
 
     public String register(RegisterRequest request) {
-
-        if(userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("El email ya está registrado");
-        }
-
-        // 2. Buscar el Rol asignado
-        Role role = roleRepository.findById(request.getRoleId())
-                .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
-
+        Role defaultRole = roleRepository.findByRoleName("PACIENTE")
+                .orElseThrow(() -> new RuntimeException("Error del sistema: El rol PACIENTE no está configurado en la BD."));
 
         User user = new User();
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
-        user.setRole(role);
+        user.setRole(defaultRole);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         userRepository.save(user);
-
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         return jwtUtil.generateToken(userDetails);

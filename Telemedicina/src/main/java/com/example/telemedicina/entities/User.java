@@ -13,7 +13,8 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "UUID") 
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)

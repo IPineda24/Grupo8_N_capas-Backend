@@ -13,8 +13,9 @@ import java.util.UUID;
 public class Role {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "UUID")
+    private UUID id;;
 
     @Column(name = "role_name", nullable = false, length = 50)
     private String roleName; // ADMIN, DOCTOR, PATIENT
