@@ -35,9 +35,11 @@ public class AuthService {
         this.userDetailsService = userDetailsService;
     }
 
-    public String register(RegisterRequest request) {
+
+    public User register(RegisterRequest request) {
+
         Role defaultRole = roleRepository.findByRoleName("ROLE_PACIENTE")
-                .orElseThrow(() -> new RuntimeException("Error del sistema: El rol PACIENTE no está configurado en la BD."));
+                .orElseThrow(() -> new RuntimeException("Error del sistema: El rol ROLE_PACIENTE no está configurado en la BD."));
 
         User user = new User();
         user.setFirstName(request.getFirstName());
@@ -47,18 +49,25 @@ public class AuthService {
         user.setRole(defaultRole);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        userRepository.save(user);
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        return jwtUtil.generateToken(userDetails);
+        return userRepository.save(user);
     }
 
-    public String login(LoginRequest request) {
+
+    public User login(LoginRequest request) {
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
+
+
+        return userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado después de autenticar."));
+    }
+
+
+    public String generateToken(User user) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         return jwtUtil.generateToken(userDetails);
     }
 }
