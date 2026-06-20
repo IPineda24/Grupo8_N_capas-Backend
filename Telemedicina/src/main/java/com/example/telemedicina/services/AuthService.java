@@ -36,7 +36,7 @@ public class AuthService {
     }
 
     public String register(RegisterRequest request) {
-        Role defaultRole = roleRepository.findByRoleName("PACIENTE")
+        Role defaultRole = roleRepository.findByRoleName("ROLE_PACIENTE")
                 .orElseThrow(() -> new RuntimeException("Error del sistema: El rol PACIENTE no está configurado en la BD."));
 
         User user = new User();
