@@ -26,11 +26,11 @@ public class JwtUtil {
 
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
-                .claims(claims) // En 0.12 se usa .claims() en lugar de .setClaims()
-                .subject(subject) // .subject() en lugar de .setSubject()
-                .issuedAt(new Date(System.currentTimeMillis())) // .issuedAt() en lugar de .setIssuedAt()
-                .expiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY)) // .expiration() en lugar de .setExpiration()
-                .signWith(SECRET_KEY) // Ahora acepta el SecretKey directamente sin especificar el algoritmo
+                .claims(claims)
+                .subject(subject)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY))
+                .signWith(SECRET_KEY)
                 .compact();
     }
 

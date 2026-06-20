@@ -36,7 +36,7 @@ public class AuthService {
     }
 
     public String register(RegisterRequest request) {
-        // 1. Validar que el email no exista
+
         if(userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("El email ya está registrado");
         }
@@ -45,29 +45,27 @@ public class AuthService {
         Role role = roleRepository.findById(request.getRoleId())
                 .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
 
-        // 3. Crear y guardar el usuario encriptando su contraseña
+
         User user = new User();
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
         user.setRole(role);
-        user.setPassword(passwordEncoder.encode(request.getPassword())); // ¡Encriptada!
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         userRepository.save(user);
 
-        // 4. Retornar un token directamente tras registrarse (opcional)
+
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         return jwtUtil.generateToken(userDetails);
     }
 
     public String login(LoginRequest request) {
-        // Esto lanzará una excepción automáticamente si las credenciales son incorrectas
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
-
-        // Si pasa la línea anterior, el usuario es válido. Generamos su Token.
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         return jwtUtil.generateToken(userDetails);
     }
