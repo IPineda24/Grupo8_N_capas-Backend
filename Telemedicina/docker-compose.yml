@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: telemedicina-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: telemedicina
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5433:5432"
+    volumes:
+      - telemedicina_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d telemedicina"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    container_name: telemedicina-app
+    build:
+      context: .
+      dockerfile: Dockerfile.multistage
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/telemedicina
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: root
+      JWT_SECRET: dGVsZW1lZGljaW5hLXNlY3JldC1rZXktcGFyYS1qd3QtdG9rZW4tc2VndXJvLTI1Ng==
+    ports:
+      - "8080:8080"
+
+networks:
+  default:
+    name: telemedicina-network
+
+volumes:
+  telemedicina_pgdata:
