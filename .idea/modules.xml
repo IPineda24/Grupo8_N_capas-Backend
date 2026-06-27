@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Grupo8_N_capas-Backend.iml" filepath="$PROJECT_DIR$/.idea/Grupo8_N_capas-Backend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/telemedicina-backend.main.iml" filepath="$PROJECT_DIR$/.idea/modules/telemedicina-backend.main.iml" />
     </modules>
   </component>
 </project>
