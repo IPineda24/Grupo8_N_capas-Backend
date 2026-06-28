@@ -1,22 +1,21 @@
 # 🏥 Telemedicina Backend
-
-API REST para sistema de Gestión de Citas Médicas (Telemedicina), desarrollada con Spring Boot 4 + Java 21.
+API REST para sistema de Gestión de Citas Médicas (Telemedicina), desarrollada con Spring Boot 3 + Java 21.
 
 ## 🚀 Tech Stack
-- **Framework:** Spring Boot 4.0.5
+- **Framework:** Spring Boot 3.4.5
 - **Lenguaje:** Java 21
-- **Build:** Gradle
+- **Build:** Gradle 8.13
 - **Base de datos:** PostgreSQL 17
-- **ORM:** Spring Data JPA + Flyway
+- **ORM:** Spring Data JPA + Hibernate 6
+- **Migraciones:** Flyway
 - **Seguridad:** Spring Security + JWT (jjwt 0.12.6)
-- **CI/CD:** GitHub Actions
 - **Contenedores:** Docker + Docker Compose
 
 ## 👥 Roles
 | Rol | Descripción |
 |-----|-------------|
 | `ROLE_ADMIN` | Gestiona doctores, especialidades y configura normativas |
-| `ROLE_DOCTOR` | Atiende citas, escribe recetas, accede al historial |
+| `ROLE_DOCTOR` | Atiende citas, emite recetas y notas médicas |
 | `ROLE_PATIENT` | Reserva citas, cancela, accede a sus recetas |
 
 ## 🔑 Endpoints principales
@@ -25,41 +24,56 @@ API REST para sistema de Gestión de Citas Médicas (Telemedicina), desarrollada
 | POST | `/api/auth/login` | Público | Login → JWT |
 | POST | `/api/auth/register` | Público | Registro de paciente |
 | GET | `/api/specialties` | Público | Listar especialidades |
+| POST | `/api/specialties` | ADMIN | Crear especialidad |
+| PUT | `/api/specialties/{id}` | ADMIN | Actualizar especialidad |
+| DELETE | `/api/specialties/{id}` | ADMIN | Desactivar especialidad |
 | GET | `/api/doctors` | Público | Listar doctores |
+| GET | `/api/doctors/specialty/{id}` | Público | Doctores por especialidad |
+| GET | `/api/doctors/{id}/schedule` | Público | Horario del doctor |
 | POST | `/api/doctors` | ADMIN | Crear doctor |
+| POST | `/api/doctors/schedule` | ADMIN | Agregar horario al doctor |
+| GET | `/api/patients` | ADMIN | Listar pacientes |
+| GET | `/api/patients/me` | PATIENT | Ver mi perfil |
+| GET | `/api/patients/{id}` | ADMIN, DOCTOR | Ver paciente por ID |
 | POST | `/api/appointments` | PATIENT | Crear cita |
-| DELETE | `/api/appointments/{id}/cancel` | AUTH | Cancelar cita |
+| GET | `/api/appointments` | ADMIN | Ver todas las citas |
+| GET | `/api/appointments/my` | PATIENT | Ver mis citas |
+| GET | `/api/appointments/doctor-agenda` | DOCTOR | Ver agenda del doctor |
+| PUT | `/api/appointments/{id}/complete` | DOCTOR | Completar cita |
+| DELETE | `/api/appointments/{id}/cancel` | PATIENT, DOCTOR | Cancelar cita |
 | PUT | `/api/appointments/{id}/rate` | PATIENT | Calificar cita |
 | POST | `/api/prescriptions` | DOCTOR | Emitir receta |
+| GET | `/api/prescriptions/my` | PATIENT | Ver mis recetas |
+| GET | `/api/prescriptions/appointment/{id}` | DOCTOR, PATIENT | Recetas de una cita |
 | PUT | `/api/prescriptions/{id}/use` | PATIENT | Usar receta |
 | POST | `/api/medical-notes` | DOCTOR | Crear nota médica |
-| GET | `/api/admin/reports/doctors` | ADMIN | Reporte de doctores |
+| GET | `/api/medical-notes/appointment/{id}` | DOCTOR, PATIENT | Notas de una cita |
+| GET | `/api/admin/reports/doctors` | ADMIN | Reporte doctores más solicitados |
 
 ## ⚙️ Configuración rápida
 
-### Variables de entorno requeridas
-```
-JWT_SECRET=<base64-encoded-secret-min-256bits>
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/telemedicina
-SPRING_DATASOURCE_USERNAME=postgres
-SPRING_DATASOURCE_PASSWORD=root
-```
+### Prerequisitos
+- Docker Desktop instalado y corriendo
+- Java 21
 
-### Levantar con Docker Compose
+### Levantar con el script incluido (recomendado)
 ```bash
-docker compose up -d
+# Windows
+.\start.ps1
+
+# Detener
+.\stop.ps1
 ```
 
-## 👤 Usuario admin por defecto
-- **Email:** admin@telemedicina.com
-- **Password:** Admin1234
+### Levantar manualmente
+```bash
+# 1. Levantar base de datos
+docker compose up db -d
 
-## 📋 Reglas de negocio implementadas
-- ✅ Control de doble reserva (paciente y doctor)
-- ✅ Cancelación hasta 4h antes → reembolso 80%
-- ✅ Receta digital con firma SHA-256 (máx. 3 usos)
-- ✅ Validación de edad mínima por especialidad
-- ✅ Enlace de videollamada generado automáticamente
-- ✅ Historial clínico accesible por médico y paciente
-- ✅ Bloqueo optimista con @Version en Appointment
-- ✅ Pago simulado (compatible con Stripe)
+# 2. Correr la aplicación
+.\gradlew.bat bootRun       # Windows
+./gradlew bootRun           # Linux/Mac
+```
+
+### Variables de entorno
+El proyecto incluye valores por defecto para desarrollo local. Para producción configurar:
