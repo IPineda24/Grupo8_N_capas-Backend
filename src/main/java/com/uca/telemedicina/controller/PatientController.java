@@ -25,6 +25,7 @@ public class PatientController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<GeneralResponse> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(GeneralResponse.builder()
                 .data(patientService.findByEmail(userDetails.getUsername())).message("Perfil obtenido").build());
