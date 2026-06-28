@@ -1,6 +1,7 @@
 package com.uca.telemedicina.controller;
 
 import com.uca.telemedicina.dto.GeneralResponse;
+import com.uca.telemedicina.dto.request.UpdatePatientRequest;
 import com.uca.telemedicina.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,16 @@ public class PatientController {
     public ResponseEntity<GeneralResponse> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(GeneralResponse.builder()
                 .data(patientService.findByEmail(userDetails.getUsername())).message("Perfil obtenido").build());
+    }
+
+    @PutMapping("/me")
+    @PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<GeneralResponse> update(
+            @RequestBody UpdatePatientRequest req,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(GeneralResponse.builder()
+                .data(patientService.update(userDetails.getUsername(), req))
+                .message("Perfil actualizado").build());
     }
 
     @GetMapping("/{id}")
