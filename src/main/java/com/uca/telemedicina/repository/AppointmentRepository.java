@@ -18,4 +18,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findConflictingPatientAppointments(@Param("patientId") Long patientId,
                                                           @Param("date") LocalDateTime date);
     List<Appointment> findByPatientIdAndStatus(Long patientId, AppointmentStatus status);
+
+    @Query("SELECT a.appointmentDate FROM Appointment a WHERE a.doctor.id = :doctorId " +
+            "AND FUNCTION('DATE', a.appointmentDate) = FUNCTION('DATE', :date) " +
+            "AND a.status NOT IN ('CANCELLED', 'NO_SHOW')")
+    List<LocalDateTime> findBookedSlotsByDoctorAndDate(@Param("doctorId") Long doctorId,
+                                                       @Param("date") LocalDateTime date);
 }

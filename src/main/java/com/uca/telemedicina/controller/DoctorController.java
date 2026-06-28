@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+
 @RestController @RequestMapping("/api/doctors") @RequiredArgsConstructor @CrossOrigin("*")
 public class DoctorController {
     private final DoctorService doctorService;
@@ -39,5 +42,13 @@ public class DoctorController {
     public ResponseEntity<GeneralResponse> getSchedule(@PathVariable Long doctorId) {
         return ResponseEntity.ok(GeneralResponse.builder()
             .data(doctorService.getSchedule(doctorId)).message("Horario del doctor").build());
+    }
+    @GetMapping("/{doctorId}/availability")
+    public ResponseEntity<GeneralResponse> getAvailability(
+            @PathVariable Long doctorId,
+            @RequestParam String date) {
+        return ResponseEntity.ok(GeneralResponse.builder()
+                .data(doctorService.getAvailability(doctorId, LocalDate.parse(date)))
+                .message("Disponibilidad del doctor").build());
     }
 }
