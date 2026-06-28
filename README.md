@@ -56,7 +56,7 @@ API REST para sistema de Gestión de Citas Médicas (Telemedicina), desarrollada
 - Docker Desktop instalado y corriendo
 - Java 21
 
-### Levantar con el script incluido (recomendado)
+### Levantar con el script incluido (recomendado) (PD: se uso IA para crear el scrip)
 ```bash
 # Windows
 .\start.ps1
