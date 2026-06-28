@@ -48,4 +48,13 @@ public class PatientController {
         return ResponseEntity.ok(GeneralResponse.builder()
                 .data(patientService.findById(id)).message("Paciente encontrado").build());
     }
+    @GetMapping("/{id}/history")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('DOCTOR') or hasRole('PATIENT')")
+    public ResponseEntity<GeneralResponse> getHistory(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(GeneralResponse.builder()
+                .data(patientService.getHistory(id, userDetails.getUsername()))
+                .message("Historial clinico del paciente").build());
+    }
 }
