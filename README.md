@@ -52,7 +52,7 @@ docker compose up -d
 
 ## 👤 Usuario admin por defecto
 - **Email:** admin@telemedicina.com
-- **Password:** password
+- **Password:** Admin1234
 
 ## 📋 Reglas de negocio implementadas
 - ✅ Control de doble reserva (paciente y doctor)
