@@ -10,6 +10,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
 
 @Service @RequiredArgsConstructor
 public class DoctorService {
@@ -20,6 +24,7 @@ public class DoctorService {
     private final DoctorScheduleRepository scheduleRepository;
     private final PasswordEncoder passwordEncoder;
     private final SpecialtyService specialtyService;
+    private final AppointmentRepository appointmentRepository;
 
     public List<DoctorResponse> findAll() {
         return doctorRepository.findByIsActiveTrue().stream().map(this::toResponse).toList();
@@ -95,5 +100,33 @@ public class DoctorService {
                 .consultationFee(d.getConsultationFee())
                 .isActive(d.getIsActive())
                 .build();
+    }
+
+    public List<AvailabilitySlotResponse> getAvailability(Long doctorId, LocalDate date) {
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor no encontrado: " + doctorId));
+
+        String dayOfWeek = date.getDayOfWeek().name();
+        List<DoctorSchedule> schedules = scheduleRepository.findByDoctorIdAndDayOfWeek(doctorId, dayOfWeek);
+        if (schedules.isEmpty()) return List.of();
+
+        List<LocalDateTime> booked = appointmentRepository
+                .findBookedSlotsByDoctorAndDate(doctorId, date.atStartOfDay());
+
+        List<AvailabilitySlotResponse> slots = new ArrayList<>();
+        for (DoctorSchedule schedule : schedules) {
+            LocalTime current = schedule.getShiftStart();
+            while (!current.isAfter(schedule.getShiftEnd().minusMinutes(30))) {
+                LocalDateTime slotDateTime = LocalDateTime.of(date, current);
+                slots.add(AvailabilitySlotResponse.builder()
+                        .doctorId(doctorId)
+                        .doctorName(doctor.getUser().getFirstName() + " " + doctor.getUser().getLastName())
+                        .slotDateTime(slotDateTime)
+                        .available(!booked.contains(slotDateTime))
+                        .build());
+                current = current.plusMinutes(30);
+            }
+        }
+        return slots;
     }
 }
