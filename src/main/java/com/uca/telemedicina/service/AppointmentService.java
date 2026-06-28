@@ -31,49 +31,40 @@ public class AppointmentService {
         Doctor doctor = doctorRepository.findById(req.getDoctorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor no encontrado: " + req.getDoctorId()));
 
-        // Validar que el doctor atiende ese día
         String dayOfWeek = req.getAppointmentDate().getDayOfWeek().name();
         List<DoctorSchedule> schedules = scheduleRepository.findByDoctorIdAndDayOfWeek(doctor.getId(), dayOfWeek);
         if (schedules.isEmpty())
             throw new BusinessRuleException("El doctor no atiende el día: " + dayOfWeek);
 
-        // Validar que la hora esté dentro del horario del doctor
         LocalTime appointmentTime = req.getAppointmentDate().toLocalTime();
         boolean withinSchedule = schedules.stream().anyMatch(s ->
                 !appointmentTime.isBefore(s.getShiftStart()) && !appointmentTime.isAfter(s.getShiftEnd()));
         if (!withinSchedule)
             throw new BusinessRuleException("La hora no está dentro del horario del doctor");
 
-        // Validar intervalos de 30 minutos (8:00, 8:30, 9:00, etc.)
         int minutes = appointmentTime.getMinute();
         if (minutes != 0 && minutes != 30)
             throw new BusinessRuleException("Las citas solo pueden agendarse en intervalos de 30 minutos (ej: 8:00, 8:30, 9:00)");
 
-        // Validar edad mínima del paciente para la especialidad
         int patientAge = Period.between(patient.getDateOfBirth(), LocalDate.now()).getYears();
         int minAge = doctor.getSpecialty().getMinAge();
         if (patientAge < minAge)
             throw new BusinessRuleException("El paciente no cumple la edad mínima (" + minAge + ") para esta especialidad");
 
-        // Validar que el doctor no tenga otra cita en ese horario
         if (!appointmentRepository.findConflictingDoctorAppointments(doctor.getId(), req.getAppointmentDate()).isEmpty())
             throw new AppointmentConflictException("El doctor ya tiene una cita en ese horario");
 
-        // Validar que el paciente no tenga otra cita en ese horario
         if (!appointmentRepository.findConflictingPatientAppointments(patient.getId(), req.getAppointmentDate()).isEmpty())
             throw new AppointmentConflictException("El paciente ya tiene una cita en ese horario");
 
         String meetingLink = "https://meet.telemedicina.com/" + UUID.randomUUID();
         Appointment appointment = Appointment.builder()
-                .patient(patient)
-                .doctor(doctor)
+                .patient(patient).doctor(doctor)
                 .appointmentDate(req.getAppointmentDate())
                 .status(AppointmentStatus.CONFIRMED)
-                .meetingLink(meetingLink)
-                .build();
+                .meetingLink(meetingLink).build();
         appointmentRepository.save(appointment);
 
-        // Simular pago
         String txId = "SIM_" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         if (req.getStripeToken() != null && !req.getStripeToken().isBlank())
             txId = "STRIPE_" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -81,11 +72,24 @@ public class AppointmentService {
                 .appointment(appointment)
                 .amountCents(doctor.getConsultationFee() * 100)
                 .status(PaymentStatus.COMPLETED)
-                .stripeTransactionId(txId)
-                .build();
+                .stripeTransactionId(txId).build();
         paymentRepository.save(payment);
 
         return toResponse(appointment);
+    }
+
+    @Transactional
+    public AppointmentResponse complete(Long appointmentId, String doctorEmail) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada: " + appointmentId));
+        if (!appointment.getDoctor().getUser().getEmail().equals(doctorEmail))
+            throw new BusinessRuleException("Solo el doctor de la cita puede completarla");
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED)
+            throw new BusinessRuleException("No se puede completar una cita cancelada");
+        if (appointment.getStatus() == AppointmentStatus.COMPLETED)
+            throw new BusinessRuleException("La cita ya está completada");
+        appointment.setStatus(AppointmentStatus.COMPLETED);
+        return toResponse(appointmentRepository.save(appointment));
     }
 
     @Transactional
@@ -105,7 +109,6 @@ public class AppointmentService {
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointmentRepository.save(appointment);
 
-        // Reembolso: 80% si cancela con 4+ horas de anticipación
         paymentRepository.findByAppointmentId(appointmentId).ifPresent(payment -> {
             long hoursUntil = Duration.between(LocalDateTime.now(), appointment.getAppointmentDate()).toHours();
             if (hoursUntil >= 4) {
